@@ -10,9 +10,10 @@ public class Cliente {
         //ThreadCliente cliente = new ThreadCliente();
         //cliente.start();
         for (int i = 0; i < numClient; i++) {
-            //ThreadCliente cliente = new ThreadCliente();
-            //cliente.start(); 
-            System.out.println(i);
+             
+            ThreadCliente cliente = new ThreadCliente(String.valueOf(i+1));
+            cliente.start(); 
+           // System.out.println(i);
             try {
                 Thread.sleep(100); 
             } catch (InterruptedException ie) {
@@ -20,8 +21,8 @@ public class Cliente {
                 System.err.println("Thread interrumpido: " + ie.getMessage());
             }
         }
-        
-        scanner.close(); 
+        scanner.close();
+       
         /* Scanner scanner = new Scanner(System.in);
         int opcion = 0;
 

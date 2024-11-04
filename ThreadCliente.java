@@ -5,7 +5,12 @@ import java.net.Socket;
 public class ThreadCliente extends Thread {
     public static final int PUERTO = 3400;
     public static final String SERVIDOR = "localhost";
-    
+    public String id_cliente;
+
+    public ThreadCliente(String id){
+        this.id_cliente = id;
+    }
+
     @Override
     public void run(){
         Socket socket = null;
@@ -26,7 +31,8 @@ public class ThreadCliente extends Thread {
 
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         try {
-            ProtocoloCliente.procesar(stdIn, lector, escritor);
+            ProtocoloCliente protocolo = new ProtocoloCliente();
+            protocolo.procesar(id_cliente, stdIn, lector, escritor);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

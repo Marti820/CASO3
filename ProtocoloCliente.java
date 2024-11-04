@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class ProtocoloCliente {
-    public static synchronized void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
+    public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         boolean ejecutar = true;
 
         while (ejecutar) {
@@ -25,17 +25,18 @@ public class ProtocoloCliente {
             if ((fromServer = pIn.readLine()) != null) {
                 System.out.println("Respuesta del Servidor: " + fromServer);
             } */
-            System.out.print("Ingrese el identificador de usuario: ");
-            String usuario = stdIn.readLine();
-            System.out.print("Ingrese el identificador del paquete: ");
-            String paquete = stdIn.readLine();
-    
+            //System.out.print("Ingrese el identificador de usuario: ");
+            //String usuario = stdIn.readLine();
+            //System.out.print("Ingrese el identificador del paquete: ");
+            //String paquete = stdIn.readLine();
+            String usuario = "user"+id;
+            String paquete = "package"+id;
             String consulta = usuario + "|" + paquete;
             pOut.println(consulta);
     
             String respuesta = pIn.readLine();
             System.out.println("Estado del paquete: " + respuesta);
-            
+            ejecutar = false;
         }
     }
 }
