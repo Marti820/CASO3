@@ -3,10 +3,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class ProtocoloCliente {
-    public static void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
-        String fromServer;
-        String fromUser;
-
+    public static synchronized void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         boolean ejecutar = true;
 
         while (ejecutar) {
