@@ -36,7 +36,7 @@ public class Cliente {
             ThreadCliente cliente = new ThreadCliente("-1");
             cliente.start();
         }
-        scanner.close();
+        //scanner.close();
        
         /* Scanner scanner = new Scanner(System.in);
         int opcion = 0;

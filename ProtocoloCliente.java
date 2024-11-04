@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class ProtocoloCliente {
     public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
@@ -43,13 +44,13 @@ public class ProtocoloCliente {
 
     public void procesar2(BufferedReader pIn, PrintWriter pOut) throws IOException {
         boolean ejecutar = true;
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in)); // Mover stdIn aquí
-    
+        //BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in)); // Mover stdIn aquí
+        Scanner scanner = new Scanner(System.in);
         while (ejecutar) {
             System.out.print("Ingrese el identificador de usuario: ");
-            String usuario = stdIn.readLine();
+            String usuario = scanner.next();
             System.out.print("Ingrese el identificador del paquete: ");
-            String paquete = stdIn.readLine();
+            String paquete = scanner.next();
             String consulta = usuario + "|" + paquete;
             pOut.println(consulta);
         
@@ -58,7 +59,8 @@ public class ProtocoloCliente {
     
             ejecutar = false;
         }
-        stdIn.close(); // Mueve el cierre de stdIn fuera de este método
+        //scanner.close();
+        //stdIn.close(); // Mueve el cierre de stdIn fuera de este método
     }
     
 
