@@ -9,10 +9,10 @@ public class ProtocoloServidor {
 
     public ProtocoloServidor() {
         tablaPaquetes = new HashMap<>();
-        tablaPaquetes.put("user1|package1", EstadoPaquete.ENOFICINA);
+       /*  tablaPaquetes.put("user1|package1", EstadoPaquete.ENOFICINA);
         tablaPaquetes.put("user2|package2", EstadoPaquete.RECOGIDO);
         tablaPaquetes.put("user3|package3", EstadoPaquete.ENCLASIFICACION);
-        tablaPaquetes.put("user4|package4", EstadoPaquete.DESPACHADO);
+        tablaPaquetes.put("user4|package4", EstadoPaquete.DESPACHADO); */
         tablaPaquetes.put("user1|package1", EstadoPaquete.ENOFICINA);
         tablaPaquetes.put("user2|package2", EstadoPaquete.RECOGIDO);
         tablaPaquetes.put("user3|package3", EstadoPaquete.ENCLASIFICACION);

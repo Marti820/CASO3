@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class ProtocoloCliente {
     public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
@@ -39,4 +41,50 @@ public class ProtocoloCliente {
             ejecutar = false;
         }
     }
+
+    public void procesar2(BufferedReader pIn, PrintWriter pOut) throws IOException {
+        boolean ejecutar = true;
+        //BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in)); // Mover stdIn aquí
+        Scanner scanner = new Scanner(System.in);
+        while (ejecutar) {
+            System.out.print("Ingrese el identificador de usuario: ");
+            String usuario = scanner.next();
+            System.out.print("Ingrese el identificador del paquete: ");
+            String paquete = scanner.next();
+            String consulta = usuario + "|" + paquete;
+            pOut.println(consulta);
+        
+            String respuesta = pIn.readLine();
+            System.out.println("Estado del paquete: " + respuesta);
+    
+            ejecutar = false;
+        }
+        //scanner.close();
+        //stdIn.close(); // Mueve el cierre de stdIn fuera de este método
+    }
+    
+
+    public synchronized void procesar3(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
+        boolean ejecutar = true;
+
+        //BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in)); // Mover stdIn aquí
+        Scanner scanner = new Scanner(System.in);
+        while (ejecutar) {
+            System.out.print("Ingrese el identificador de usuario: ");
+            String usuario = scanner.next();
+            System.out.print("Ingrese el identificador del paquete: ");
+            String paquete = scanner.next();
+            String consulta = usuario + "|" + paquete;
+            for (int i = 0; i < 31; i++) {
+                //aqui toca hacer la verificacion de nuevo 
+                pOut.println(consulta);
+                String respuesta = pIn.readLine();
+                System.out.println("Estado del paquete: " + respuesta);
+            }
+            ejecutar = false;
+        }
+        //scanner.close();
+        //stdIn.close(); // Mueve el cierre de stdIn fuera de este método
+    }
 }
+

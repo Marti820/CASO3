@@ -95,7 +95,7 @@ public class Servidor {
             fos.write(privada.getEncoded());
         }
 
-        System.out.println("Las llaves han sido generadas y guardadas en archivos planos.");
+        System.out.println("Las llaves han sido generadas y guardadas en archivos");
     }
     
 

@@ -13,11 +13,92 @@ public class ThreadCliente extends Thread {
 
     @Override
     public void run(){
+        
+        if (id_cliente.equals("0")){
+        
         Socket socket = null;
         PrintWriter escritor = null;
         BufferedReader lector = null;
 
-        System.out.println("Cliente ...");
+        System.out.println("Cliente (unica consulta)...");
+
+        try {
+            socket = new Socket(SERVIDOR, PUERTO);
+            escritor = new PrintWriter(socket.getOutputStream(), true);
+            lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        } catch (IOException e) {
+            System.err.println("Exception: " + e.getMessage());
+            System.exit(1);
+        }
+
+       
+        ProtocoloCliente protocolo = new ProtocoloCliente();
+        try {
+            protocolo.procesar2(lector, escritor);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+       
+        try {
+            escritor.close();
+            lector.close();
+            socket.close();
+           
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }   
+    
+    else if (id_cliente.equals("-1")){
+        
+            Socket socket = null;
+            PrintWriter escritor = null;
+            BufferedReader lector = null;
+
+            System.out.println("Cliente (Unico Multi consulta) ...");
+
+            try {
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(SERVIDOR, PUERTO), 5000); // Timeout de 5 segundos
+                escritor = new PrintWriter(socket.getOutputStream(), true);
+                lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            } catch (IOException e) {
+                System.err.println("Exception: " + e.getMessage());
+                System.exit(1);
+            }
+
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+            try {
+                ProtocoloCliente protocolo = new ProtocoloCliente();
+                protocolo.procesar3(id_cliente, stdIn, lector, escritor);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+        
+            try {
+                escritor.close();
+                lector.close();
+                socket.close();
+                stdIn.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        }
+    else {
+    
+        Socket socket = null;
+        PrintWriter escritor = null;
+        BufferedReader lector = null;
+
+        System.out.println("Cliente (Concurrentes) ...");
 
         try {
             socket = new Socket();
@@ -38,7 +119,7 @@ public class ThreadCliente extends Thread {
             e.printStackTrace();
         }
         
-       
+    
         try {
             escritor.close();
             lector.close();
@@ -48,8 +129,10 @@ public class ThreadCliente extends Thread {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
+    
     }
+    }
+
 }
     /* public static final int PUERTO = 3400;
     public static final String SERVIDOR = "localhost";
