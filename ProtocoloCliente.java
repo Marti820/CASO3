@@ -81,7 +81,7 @@ public class ProtocoloCliente {
             System.out.println("VERIFICAR RETO=RTA");
             String respuesta2 = pIn.readLine();
             byte[] rta = Base64.getDecoder().decode(respuesta2);
-            if (R.equals(rta)){
+            if (Arrays.equals(reto, rta)){
                 System.out.println("RETO==RTA BIEN");
                 pOut.println("Ok");
             }
