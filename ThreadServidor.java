@@ -23,7 +23,7 @@ public class ThreadServidor extends Thread {
             escritor.close();
             lector.close();
             sktCliente.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

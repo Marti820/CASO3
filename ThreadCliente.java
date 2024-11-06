@@ -114,7 +114,7 @@ public class ThreadCliente extends Thread {
         try {
             ProtocoloCliente protocolo = new ProtocoloCliente();
             protocolo.procesar(id_cliente, stdIn, lector, escritor);
-        } catch (IOException e) {
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
