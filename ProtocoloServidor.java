@@ -1,4 +1,6 @@
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
@@ -73,7 +75,7 @@ public class ProtocoloServidor {
         tablaPaquetes.put("user32|package32", EstadoPaquete.DESPACHADO);
     }
 
-    public void procesar(BufferedReader pIn, PrintWriter pOut) throws Exception {
+    public void procesar(BufferedReader pIn, PrintWriter pOut, DataOutputStream pOut2) throws Exception {
         /* String inputLine;
         
         while ((inputLine = pIn.readLine()) != null) {
@@ -98,6 +100,8 @@ public class ProtocoloServidor {
             String inputLine;
             String outputLine ="";
             int estado = 0;
+            BigInteger x;
+            BigInteger p;
 
             PrivateKey llavePriv= leerClavePrivada("privateKey.pem");
             PublicKey llavePub = leerClavePublica("publicKey.pem");
@@ -117,25 +121,48 @@ public class ProtocoloServidor {
                         }
                         break;
                     case 1:
-                    String RBase64 =inputLine;
-                    byte[] R = Base64.getDecoder().decode(RBase64);
-                    byte[] rta = descifrarReto(R, llavePriv);
-                    //enviar rta
-                    outputLine = Base64.getEncoder().encodeToString(rta);
-                    estado++;
-                    break;
+                        String RBase64 =inputLine;
+                        byte[] R = Base64.getDecoder().decode(RBase64);
+                        byte[] rta = descifrarReto(R, llavePriv);
+                        //enviar rta
+                        outputLine = Base64.getEncoder().encodeToString(rta);
+                        estado++;
+                        break;
                     case 2:
                         if (inputLine.equalsIgnoreCase("OK")){
                         //7 generar G P G^X
-                        outputLine = "TODO";
+                        BigInteger[] PyG = generarPyG();
+                        p = PyG[0];
+                        BigInteger g = PyG[1];
+                        BigInteger[] Gx_x = generarGx(PyG);
+                        BigInteger gx = Gx_x[0];
+                        x = Gx_x[1];
+
+                        byte[] firma = firmarMensaje(p, g, gx, llavePriv);
+
+
+                        enviarBigInteger(pOut2, p);
+                        enviarBigInteger(pOut2, g);
+                        enviarBigInteger(pOut2, gx);
+                        enviarFirma(pOut2, firma);
+                        
+                        System.out.println("Valores enviados al cliente");
                         estado++;
                         }
                         else{
                         estado = 0;
                         }
                     break;
-                    
                     case 3:
+                        try {
+                            String gyString = inputLine;
+                            byte[] gyByte = Base64.getDecoder().decode(gyString);
+                            BigInteger gy = new BigInteger(gyByte);
+                            //BigInteger z = generarZ(gy, x, p);
+                        } catch (Exception e) {
+                            // TODO: handle exception
+                        }
+                    case 4:
                         try {
                             System.out.println("Consulta recibida: " + inputLine);
                             String[] datos = inputLine.split("\\|");
@@ -173,7 +200,7 @@ public class ProtocoloServidor {
     public static BigInteger[] generarPyG(){
         try {
             // Cambia esta ruta a la ubicación de tu openssl
-            String opensslPath = "C:\\Users\\User\\Desktop\\OpenSSL-1.1.1h_win32\\openssl";
+            String opensslPath = "\"D:\\OpenSSL-1.1.1h_win32\\openssl.exe\"";
             String command = opensslPath + " dhparam -text 1024";
 
             // Ejecutar el comando
@@ -261,10 +288,19 @@ public class ProtocoloServidor {
         return cipher.doFinal(R);
     }
 
-    public static byte[] firmarMensaje(byte[] mensaje, PrivateKey clavePrivada) throws Exception {
+    public static byte[] firmarMensaje(BigInteger p, BigInteger g, BigInteger gx, PrivateKey clavePrivada) throws Exception {
+        byte[] pByte = p.toByteArray();
+        byte[] gByte = g.toByteArray();
+        byte[] gxByte = gx.toByteArray();
+
+        byte[] concat = new byte[pByte.length + gByte.length + gxByte.length];
+        System.arraycopy(pByte, 0, concat, 0, pByte.length);
+        System.arraycopy(gByte, 0, concat, pByte.length, gByte.length);
+        System.arraycopy(gxByte, 0, concat, pByte.length + gByte.length, gxByte.length);
+
         Signature signature = Signature.getInstance("SHA1withRSA"); 
         signature.initSign(clavePrivada);
-        signature.update(mensaje); 
+        signature.update(concat); 
         return signature.sign();
     }
 
@@ -287,7 +323,7 @@ public class ProtocoloServidor {
 
     }
 
-    public static BigInteger generarZ(BigInteger gy, BigInteger x, BigInteger p){
+    public static BigInteger generarZ(BigInteger gy, BigInteger x, BigInteger p) throws NoSuchAlgorithmException{
 
         BigInteger z = gy.modPow(x, p);
 
@@ -332,6 +368,18 @@ public class ProtocoloServidor {
 
         return mac.doFinal(estado);
 
+    }
+
+    private static void enviarBigInteger(DataOutputStream salida, BigInteger valor) throws IOException {
+        byte[] valorBytes = valor.toByteArray();
+        salida.writeInt(valorBytes.length); // Enviar el tamaño del byte array
+        salida.write(valorBytes); // Enviar el contenido del byte array
+    }
+
+    // Método para enviar la firma
+    private static void enviarFirma(DataOutputStream salida, byte[] firma) throws IOException {
+        salida.writeInt(firma.length); // Enviar el tamaño del byte array de la firma
+        salida.write(firma); // Enviar el contenido de la firma
     }
     
 }

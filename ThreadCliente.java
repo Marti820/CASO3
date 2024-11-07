@@ -26,6 +26,7 @@ public class ThreadCliente extends Thread {
             socket = new Socket(SERVIDOR, PUERTO);
             escritor = new PrintWriter(socket.getOutputStream(), true);
             lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            
         } catch (IOException e) {
             System.err.println("Exception: " + e.getMessage());
             System.exit(1);
@@ -97,6 +98,7 @@ public class ThreadCliente extends Thread {
         Socket socket = null;
         PrintWriter escritor = null;
         BufferedReader lector = null;
+        DataInputStream inputStream = null;
 
         System.out.println("Cliente (Concurrentes) ...");
 
@@ -105,6 +107,7 @@ public class ThreadCliente extends Thread {
             socket.connect(new InetSocketAddress(SERVIDOR, PUERTO), 5000); // Timeout de 5 segundos
             escritor = new PrintWriter(socket.getOutputStream(), true);
             lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            inputStream = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             System.err.println("Exception: " + e.getMessage());
             System.exit(1);
@@ -113,7 +116,7 @@ public class ThreadCliente extends Thread {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         try {
             ProtocoloCliente protocolo = new ProtocoloCliente();
-            protocolo.procesar(id_cliente, stdIn, lector, escritor);
+            protocolo.procesar(id_cliente, stdIn, lector, escritor, inputStream);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

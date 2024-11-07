@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -30,7 +31,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class ProtocoloCliente {
-    public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws Exception {
+    public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut, DataInputStream pIn2) throws Exception {
         boolean ejecutar = true;
 
         while (ejecutar) {
@@ -89,13 +90,37 @@ public class ProtocoloCliente {
                 System.out.println("RETO==RTA MAL :( ");
                 pOut.println("ERROR");
             }
-            String respuesta3 = pIn.readLine();
-            if (true){
-            String usuario = "user"+id;
-            String paquete = "package"+id;
-            String consulta = usuario + "|" + paquete;
-            pOut.println(consulta);}
+            //9. verificar firma
+            BigInteger p = recibirBigInteger(pIn2);
+            BigInteger g = recibirBigInteger(pIn2);
+            BigInteger gx = recibirBigInteger(pIn2);
+            byte[] firma = recibirFirma(pIn2);
+            boolean verificada = verificarFirma(p, g, gx, firma, llavePub);
+            if (verificada){
+                System.out.println("Firma verificada");
+                pOut.println("Ok");
+            }
+            else{
+                System.out.println("Firma no verificada");
+                pOut.println("ERROR");
+            }
+            /* 
+            BigInteger gy = generarGy(null);
+            BigInteger z = generarZ(null, null, null);
+            Map<String, Key> claves = generarClavesMap(z);
+            Key claveCifrado = claves.get("claveCifrado");
+            Key claveHMAC = claves.get("claveHMAC");
 
+            String gyString = Base64.getEncoder().encodeToString(gy.toByteArray());
+            pOut.println(gyString);
+            */
+
+            if (true){
+                String usuario = "user"+id;
+                String paquete = "package"+id;
+                String consulta = usuario + "|" + paquete;
+                pOut.println(consulta);
+            }
             String respuesta20 = pIn.readLine();
             System.out.println("Estado del paquete: " + respuesta20);
             ejecutar = false;
@@ -172,11 +197,44 @@ public class ProtocoloCliente {
         return reto;
     }
 
-    public static boolean verificarFirma(byte[] mensaje, byte[] firma, PublicKey clavePublica) throws Exception {
+    public static boolean verificarFirma(BigInteger p, BigInteger g, BigInteger gx, byte[] firma, PublicKey clavePublica) throws Exception {
+        
+        byte[] pByte = p.toByteArray();
+        byte[] gByte = g.toByteArray();
+        byte[] gxByte = gx.toByteArray();
+
+        // Concatenar los byte arrays en el mismo orden
+        byte[] concat = new byte[pByte.length + gByte.length + gxByte.length];
+        System.arraycopy(pByte, 0, concat, 0, pByte.length);
+        System.arraycopy(gByte, 0, concat, gByte.length, gByte.length);
+        System.arraycopy(gxByte, 0, concat, pByte.length + gByte.length, gxByte.length);
+
+        // Crear una instancia de Signature para la verificación
         Signature signature = Signature.getInstance("SHA1withRSA");
-        signature.initVerify(clavePublica); 
-        signature.update(mensaje); 
-        return signature.verify(firma); 
+        signature.initVerify(clavePublica);
+
+        // Actualizar la firma con los datos concatenados
+        signature.update(concat);
+
+        // Verificar la firma recibida
+        return signature.verify(firma);
+    }
+    
+
+    // Método para recibir un BigInteger
+    private static BigInteger recibirBigInteger(DataInputStream entrada) throws IOException {
+        int length = entrada.readInt(); // Leer el tamaño del byte array
+        byte[] valorBytes = new byte[length];
+        entrada.readFully(valorBytes); // Leer el contenido del byte array
+        return new BigInteger(valorBytes); // Reconstruir el BigInteger
+    }
+
+    // Método para recibir la firma
+    private static byte[] recibirFirma(DataInputStream entrada) throws IOException {
+        int length = entrada.readInt(); // Leer el tamaño del byte array de la firma
+        byte[] firma = new byte[length];
+        entrada.readFully(firma); // Leer el contenido de la firma
+        return firma;
     }
     
 
