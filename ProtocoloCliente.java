@@ -12,6 +12,7 @@ import java.security.Key;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
@@ -206,7 +207,7 @@ public class ProtocoloCliente {
         // Concatenar los byte arrays en el mismo orden
         byte[] concat = new byte[pByte.length + gByte.length + gxByte.length];
         System.arraycopy(pByte, 0, concat, 0, pByte.length);
-        System.arraycopy(gByte, 0, concat, gByte.length, gByte.length);
+        System.arraycopy(gByte, 0, concat, pByte.length, gByte.length);
         System.arraycopy(gxByte, 0, concat, pByte.length + gByte.length, gxByte.length);
 
         // Crear una instancia de Signature para la verificación
@@ -302,5 +303,6 @@ public class ProtocoloCliente {
         return mac.doFinal(id);
 
     }
+    
 }
 
