@@ -17,9 +17,11 @@ public class ThreadServidor extends Thread {
             PrintWriter escritor = new PrintWriter(sktCliente.getOutputStream(), true);
             BufferedReader lector = new BufferedReader(new InputStreamReader(sktCliente.getInputStream()));
             DataOutputStream outPutStream = new DataOutputStream(sktCliente.getOutputStream());
+            DataInputStream inPutStream = new DataInputStream(sktCliente.getInputStream());
+            PrintWriter pOut1 = new PrintWriter(sktCliente.getOutputStream(), true);
 
             ProtocoloServidor protocolo = new ProtocoloServidor();
-            protocolo.procesar(lector, escritor, outPutStream);
+            protocolo.procesar(lector, escritor,pOut1, outPutStream, inPutStream);
 
             escritor.close();
             lector.close();

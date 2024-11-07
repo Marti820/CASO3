@@ -99,6 +99,7 @@ public class ThreadCliente extends Thread {
         PrintWriter escritor = null;
         BufferedReader lector = null;
         DataInputStream inputStream = null;
+        DataOutputStream outputStream = null;
 
         System.out.println("Cliente (Concurrentes) ...");
 
@@ -108,6 +109,7 @@ public class ThreadCliente extends Thread {
             escritor = new PrintWriter(socket.getOutputStream(), true);
             lector = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             inputStream = new DataInputStream(socket.getInputStream());
+            outputStream = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             System.err.println("Exception: " + e.getMessage());
             System.exit(1);
@@ -116,7 +118,7 @@ public class ThreadCliente extends Thread {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         try {
             ProtocoloCliente protocolo = new ProtocoloCliente();
-            protocolo.procesar(id_cliente, stdIn, lector, escritor, inputStream);
+            protocolo.procesar(id_cliente, stdIn, lector, escritor, inputStream, outputStream);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

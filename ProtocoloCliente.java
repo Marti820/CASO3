@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -32,7 +33,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class ProtocoloCliente {
-    public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut, DataInputStream pIn2) throws Exception {
+    public synchronized void procesar(String id,BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut, DataInputStream pIn2,DataOutputStream pOut2) throws Exception {
         boolean ejecutar = true;
 
         while (ejecutar) {
@@ -66,7 +67,7 @@ public class ProtocoloCliente {
             //1. SECINIT
             System.out.println("envia: SECINIT");
             pOut.println("SECINIT");
-
+            
             //2a. CALCULAR R = C(K_W+, RETO)
             String respuesta1  = pIn.readLine();
             if (!"Listo_SECINIT".equals(respuesta1)){
@@ -97,24 +98,69 @@ public class ProtocoloCliente {
             BigInteger gx = recibirBigInteger(pIn2);
             byte[] firma = recibirFirma(pIn2);
             boolean verificada = verificarFirma(p, g, gx, firma, llavePub);
+            //10. envia OK o ERROR
             if (verificada){
                 System.out.println("Firma verificada");
-                pOut.println("Ok");
             }
             else{
                 System.out.println("Firma no verificada");
-                pOut.println("ERROR");
             }
-            /* 
-            BigInteger gy = generarGy(null);
-            BigInteger z = generarZ(null, null, null);
+            //11. calcula Gy
+            BigInteger[] PyG = new BigInteger[]{p, g};
+            BigInteger[] gy_y = generarGy(PyG);
+            BigInteger gy = gy_y[0];
+
+            String gyString = Base64.getEncoder().encodeToString(gy.toByteArray());
+            pOut.println(gyString);
+
+            //11a. generar Z
+            BigInteger y = gy_y[1];
+            BigInteger z = generarZ(gx, y, p);
             Map<String, Key> claves = generarClavesMap(z);
             Key claveCifrado = claves.get("claveCifrado");
             Key claveHMAC = claves.get("claveHMAC");
 
-            String gyString = Base64.getEncoder().encodeToString(gy.toByteArray());
-            pOut.println(gyString);
-            */
+            //12. recibir IV
+            String ivString = pIn.readLine();
+            byte[] iv = Base64.getDecoder().decode(ivString);
+            if (iv.length != 16) {
+                throw new IllegalArgumentException("IV incorrecto: debe tener exactamente 16 bytes"+iv.length);
+            }
+
+            byte[] idCifrado = cifradoSimetrico(iv, claveCifrado, ("user"+id).getBytes());
+            byte[] idHMAC = cifradoHMAC(claveHMAC, ("user"+id).getBytes());
+            byte[] paqueteCifrado = cifradoSimetrico(iv, claveCifrado, ("package"+id).getBytes());
+            byte[] paqueteHMAC = cifradoHMAC(claveHMAC, ("package"+id).getBytes());
+
+            //13. enviar user
+            enviarCifrados(pOut2, idCifrado);
+            enviarCifrados(pOut2, idHMAC);
+
+            //14. enviar paquete
+            enviarCifrados(pOut2, paqueteCifrado);
+            enviarCifrados(pOut2, paqueteHMAC);
+
+
+            //16. recibir estado del paquete
+            byte[] estadoCifrado = recibirFirma(pIn2);
+            byte[] estadoHMAC = recibirFirma(pIn2);
+
+            //17. verificar estado del paquete
+            String estado = new String(descifradoSimetrico(iv, claveCifrado, estadoCifrado));
+            String estadoHMAC1 = new String(descifradoHMAC(claveHMAC, estadoHMAC));
+
+            if (estadoHMAC1.equals(estado)){
+                System.out.println("Estado del paquete: " + estado);
+                pOut.println("TERMINAR");
+            }
+            else if (!estadoHMAC1.equals(estado)){
+                System.out.println("ERROR en estado del paquete");
+                pOut.println("ERROR");
+                ejecutar = false;
+            }
+            
+            
+            
 
             if (true){
                 String usuario = "user"+id;
@@ -126,6 +172,27 @@ public class ProtocoloCliente {
             System.out.println("Estado del paquete: " + respuesta20);
             ejecutar = false;
         }
+    }
+
+    private static void enviarCifrados(DataOutputStream salida, byte[] cifrado) throws IOException {
+        salida.writeInt(cifrado.length); // Enviar el tamaño del byte array de la firma
+        salida.write(cifrado); // Enviar el contenido de la firma
+    }
+
+    public static byte[] descifradoSimetrico(byte[] iv, Key claveCifrado, byte[] datosCifrados) 
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
+                   InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, claveCifrado, ivSpec);
+
+        return cipher.doFinal(datosCifrados);
+    }
+
+    public static byte[] descifradoHMAC(Key claveHMAC, byte[] datosHMAC) throws NoSuchAlgorithmException, InvalidKeyException{
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(claveHMAC);
+        return mac.doFinal(datosHMAC);
     }
 
     public void procesar2(BufferedReader pIn, PrintWriter pOut) throws IOException {
@@ -239,7 +306,7 @@ public class ProtocoloCliente {
     }
     
 
-    public static BigInteger generarGy(BigInteger[] PyG){
+    public static BigInteger[] generarGy(BigInteger[] PyG){
         
         BigInteger p = PyG[0];
         BigInteger g = PyG[1];
@@ -254,7 +321,7 @@ public class ProtocoloCliente {
 
         BigInteger gy = g.modPow(y,p);
 
-        return gy;
+        return new BigInteger[]{gy, y};
 
     }
 
